@@ -1,11 +1,17 @@
 package com.example.security1.controller;
 
+import com.example.security1.model.User;
+import com.example.security1.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller //view를 return
 public class IndexController {
+
 
     //머스테치 기본폴더 src/main/resources로 잡힌다
     //view resolver 설정할 때, prefix : templates, suffix : .mustache
@@ -30,19 +36,28 @@ public class IndexController {
         return "manager";
     }
 
-    @GetMapping("/login")
-    public @ResponseBody String login(){
-        return "login";
+    @GetMapping("/loginForm")
+    public String loginForm(){
+        return "loginForm";
     }
-
-    @GetMapping("/join")
-    public @ResponseBody String join(){
-        return "join";
+    @GetMapping("/joinForm")
+    public String joinFrom(){
+        return "joinForm";
     }
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    @GetMapping("/joinProc")
-    public @ResponseBody String joinProc(){
-        return "회원가입 완료!";
+    @Autowired
+    private UserRepository userRepository;
+    @PostMapping("/join")
+    public String join(User user){
+        user.setRole("ROLE_USER");
+        String rawPassword=user.getPassword();
+        String encPassword = bCryptPasswordEncoder.encode(rawPassword);
+        user.setPassword(encPassword);
+        userRepository.save(user);
+        System.out.println(user);
+        return "redirect:/loginForm";
     }
 
 }
