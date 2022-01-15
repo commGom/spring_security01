@@ -1,5 +1,7 @@
 package com.example.security1.config;
 
+import com.example.security1.config.oauth.PrincipalOauth2UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -13,11 +15,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @EnableGlobalMethodSecurity(securedEnabled = true,prePostEnabled = true)
 //secured 어노테이션 활성화시켜주는 어노테이션, prePostAuthorize 어노테이션 활성화
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-    //패스워드 암호화를 위하여 사용한다. Bean 어노테이션을 사용하면 해당 메서드의 리턴되는 오브젝트를 IoC로 등록된다.
-    @Bean
-    public BCryptPasswordEncoder encodedPwd(){
-        return new BCryptPasswordEncoder();
-    }
+
+    @Autowired
+    private PrincipalOauth2UserService principalOauth2UserService;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -31,6 +31,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin()
                 .loginPage("/loginForm")
                 .loginProcessingUrl("/login")    //login 주소가 호출이 되면 시큐리티가 낚아채서 대신 로그인을 진행한다. // (Controller에 login url안 만들어도된다.)
-                .defaultSuccessUrl("/");        //로그인이 성공되면 / url로 보내준다.
+                .defaultSuccessUrl("/")        //로그인이 성공되면 / url로 보내준다.
+                .and()
+                .oauth2Login()
+                .loginPage("/loginForm")       //후처리가 필요함. (1. 코드를 받고(인증 받아서 구글에 로그인이 됨)
+                .userInfoEndpoint()            //->  2. access 토큰을 받고 -> 3. security 서버가 구글 사용자 정보 접근 권한이 생김
+                .userService(principalOauth2UserService);             //-> 4. 사용자 정보를 토대로 회원가입 자동으로 진행 or 필요시 추가적인 입력을 받는다
+                //구글 로그인이 완료된 뒤의 후처리가 필요한데 codeX(엑세스 토큰+사용자프로필정보를 받는다)
     }
 }
