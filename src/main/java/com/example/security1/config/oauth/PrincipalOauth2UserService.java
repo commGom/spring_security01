@@ -47,6 +47,8 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
                     .providerId(providerId)
                     .build();
             userRepository.save(userEntity);
+        }else{
+
         }
         return new PrincipalDetails(userEntity,oAuth2User.getAttributes());
     }
